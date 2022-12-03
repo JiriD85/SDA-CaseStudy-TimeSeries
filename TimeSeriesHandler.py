@@ -316,7 +316,7 @@ class FileHandler(object):
 	
 if __name__ == '__main__':
 	console = Console()
-	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - STARTED![/bold]\n\n')
+	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - TimeSeriesHandler.py STARTED![/bold]\n\n')
 
 	# parse command line argiments
 	parser = argparse.ArgumentParser()
@@ -355,4 +355,4 @@ except Exception:
 	console.print()
 	console.print_exception()
 finally:
-	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - STOPPED![/bold]\n')
+	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - TimeSeriesHandler.py STOPPED![/bold]\n')
