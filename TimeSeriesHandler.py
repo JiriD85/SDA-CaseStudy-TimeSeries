@@ -9,7 +9,6 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import datetime
 from datetime import datetime
-from scipy import stats
 import warnings
 warnings.filterwarnings(action='ignore')
 import argparse, sys
@@ -22,8 +21,8 @@ from rich.console import Console
 highlightColor = 'blue'
 messageColor = 'spring_green2'
 errorColor = 'red'
-valid_temp = [-20, 50]  # Wertebereich Temperatur
-valid_hum = [0, 100]    # Wertebereich Luftfeuchtigkeit
+valid_temp = [0, 50]  # Wertebereich Temperatur
+valid_hum = [0, 100]  # Wertebereich Luftfeuchtigkeit
 
 ###### FileHandler ######
 class FileHandler(object):
