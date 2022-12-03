@@ -200,7 +200,7 @@ class FileHandler(object):
 						self.dataframe['Datetime'][nat] = self.dataframe['Datetime'][nat + 1] - mean_timegap
 				elif (first_index >= nat):
 					self.dataframe['Datetime'][nat] = self.dataframe['Datetime'][first_index+1] - mean_timegap
-					if first_index > 1:
+					if first_index >= 1:
 						first_index-=1
 				else: 
 					self.dataframe['Datetime'][nat] = self.dataframe['Datetime'][first_index] - mean_timegap
@@ -231,6 +231,21 @@ class FileHandler(object):
 					nan_index.append(index)
 
 			console.print(f'[{messageColor}]Data columns formated. Empty values replaced with NaN. Indices: {nan_index}')
+		except Exception as e:
+			console.print(f'[{errorColor}]FORMAT_DATA_COLUMNS EXCEPTION - Something strange is going on: {type(e)}')
+	
+	def check_valid_value(self) -> None:
+		try:
+			nan_index = []
+			for index in self.dataframe.index:
+				if (self.dataframe['Temp'][index] < valid_temp[0]) or (self.dataframe['Temp'][index] > valid_temp[1]):
+					self.dataframe['Temp'][index] = np.nan
+					nan_index.append(index)
+				if (self.dataframe['Hum'][index] < valid_hum[0]) or (self.dataframe['Hum'][index] > valid_hum[1]):
+					self.dataframe['Hum'][index] = np.nan
+					nan_index.append(index)
+
+			console.print(f'[{messageColor}]Values checked. Invalid values replaced with NaN. Indices: {nan_index}')
 		except Exception as e:
 			console.print(f'[{errorColor}]FORMAT_DATA_COLUMNS EXCEPTION - Something strange is going on: {type(e)}')
 	
@@ -344,6 +359,7 @@ try:
 	file.check_valid_date()
 	file.replace_nat()
 	file.format_data_columns()
+	file.check_valid_value()
 	file.interpolate_nan()
 	file.remove_outliers()
 	file.plot_data()
