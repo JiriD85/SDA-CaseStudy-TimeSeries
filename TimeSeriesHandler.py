@@ -19,6 +19,7 @@ sys.path.append(f'{parent}')
 from rich.console import Console
 
 ###### Variables #######
+highlightColor = 'blue'
 messageColor = 'spring_green2'
 errorColor = 'red'
 valid_temp = [-20, 50]  # Wertebereich Temperatur
@@ -205,7 +206,7 @@ class FileHandler(object):
 					self.dataframe['Datetime'][nat] = self.dataframe['Datetime'][first_index] - mean_timegap
 			
 				print("Calculated Timestamp for: df[" + str(nat) + "]['Datetime']=" + str(self.dataframe['Datetime'][nat]))
-			console.print(f'[{messageColor}]NaT replaced with calculated Timestamps.')
+			console.print(f'[{messageColor}]NaT replaced with calculated Timestamps. Indices: {nat_index}')
 		except Exception as e:
 			console.print(f'[{errorColor}]REPLACE_NAT EXCEPTION - Something strange is going on: {type(e)}, Index: {index}')
 			
@@ -222,7 +223,14 @@ class FileHandler(object):
 			# Replace empty string ('') with np.nan
 			self.dataframe['Temp'] = self.dataframe['Temp'].replace(r'^\s*$', np.nan, regex=True)
 			self.dataframe['Hum'] = self.dataframe['Hum'].replace(r'^\s*$', np.nan, regex=True)
-			console.print(f'[{messageColor}]Data columns formated. Empty strings replaced with NaN.')
+			# Check for NaN Index
+			df_nan = self.dataframe.isna()
+			nan_index = []
+			for index in df_nan.index:
+				if (df_nan['Temp'][index]) or (df_nan['Hum'][index]):
+					nan_index.append(index)
+
+			console.print(f'[{messageColor}]Data columns formated. Empty values replaced with NaN. Indices: {nan_index}')
 		except Exception as e:
 			console.print(f'[{errorColor}]FORMAT_DATA_COLUMNS EXCEPTION - Something strange is going on: {type(e)}')
 	
@@ -308,7 +316,7 @@ class FileHandler(object):
 	
 if __name__ == '__main__':
 	console = Console()
-	console.print(f'\n[bold]Case Study - Time Series - Dockal - STARTED![/bold]\n\n')
+	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - STARTED![/bold]\n\n')
 
 	# parse command line argiments
 	parser = argparse.ArgumentParser()
@@ -347,4 +355,4 @@ except Exception:
 	console.print()
 	console.print_exception()
 finally:
-	console.print(f'[{messageColor}]Case Study - Time Series - Dockal - STOPPED!')
+	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - STOPPED![/bold]\n')
