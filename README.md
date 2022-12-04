@@ -53,8 +53,8 @@ Boxplot (with an interquartile range) and a probability density function (pdf) o
 
 2. **Standard deviation:** Standard deviation method is similar to IQR procedure. Depending on the set limit either at 2 times stdev or 3 times stdev, we can detect and remove outliers from the dataset:
 
-- Upper limit = `mean + 3 * stdev`
-- Lower limit = `mean - 3 * stdev`
+- $$ Upper limit = mean + 3 * stdev $$
+- $$ Lower limit = mean - 3 * stdev $$
 
 3. **Z-Score:** Z-score is just another form of standard deviation procedure. Z-score is used to convert the data into another dataset with mean = 0.
 
