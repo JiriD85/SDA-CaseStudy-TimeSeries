@@ -235,6 +235,10 @@ class FileHandler(object):
 	
 	def check_valid_value(self) -> None:
 		try:
+			# Create copy of the dataframe for visualization
+			global df_before_outliers
+			df_before_outliers = self.dataframe.copy(deep=True)
+			# Check for valid values and remove values that not match the valid range
 			nan_index = []
 			for index in self.dataframe.index:
 				if (self.dataframe['Temp'][index] < valid_temp[0]) or (self.dataframe['Temp'][index] > valid_temp[1]):
@@ -259,9 +263,6 @@ class FileHandler(object):
 	
 	def remove_outliers(self) -> None:
 			try:
-				# Create copy of the dataframe for visualization
-				global df_before_outliers
-				df_before_outliers = self.dataframe.copy(deep=True)
 				# if arg iqr = True --> Identify outliers with Interquartile Range
 				if bool(self.iqr[0]):
 					# iqr
@@ -300,7 +301,11 @@ class FileHandler(object):
 				# Create Plot
 				fig, ax = plt.subplots(2, 2, figsize=(14,7))
 				fig.subplots_adjust(hspace=0.5)
-				fig.suptitle('Sensor Data: Humidity and Temperature')
+				# Plot Title
+				if bool(self.iqr[0]):
+					fig.suptitle('Sensor Data: Humidity and Temperature (Outlier removal with Interquartile Range: Q1 = 0.25, Q3 = 0.75 )')
+				else:
+					fig.suptitle(f'Sensor Data: Humidity and Temperature (Outlier removal with Standard deviation: SD = {int(self.std[0])} )')
 				# Boxplot
 				ax[0,0].set_xlim(0,150)
 				ax[1,0].set_xlim(0,150)
