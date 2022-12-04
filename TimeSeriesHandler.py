@@ -211,12 +211,12 @@ class FileHandler(object):
 			
 	def format_data_columns(self) -> None:
 		try:
-			# Replacing Strings in Temp and Hum, Dropping TO
+			# Replacing Strings in Temp and Hum
 			self.dataframe['Temp'] = self.dataframe['Temp'].str.replace('T=', '')
 			self.dataframe['Hum'] = self.dataframe['Hum'].str.replace('H=', '')
 			# Droping Column "TO"
 			self.dataframe = self.dataframe.drop(columns=['TO'])
-			# Convert each value of the column to a string
+			# Convert each value of the column to float
 			self.dataframe['Temp'] = pd.to_numeric(self.dataframe['Temp'], errors='coerce')
 			self.dataframe['Hum'] = pd.to_numeric(self.dataframe['Hum'], errors='coerce')
 			# Replace empty string ('') with np.nan
