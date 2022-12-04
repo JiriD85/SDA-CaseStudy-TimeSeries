@@ -3,7 +3,7 @@
 **Link to GitHub Repository:**
 [https://github.com/JiriD85/SDA-CaseStudy-TimeSeries](https://github.com/JiriD85/SDA-CaseStudy-TimeSeries)
 
-## Usage of TimeSeriesHandler.py
+## 1. Usage of TimeSeriesHandler.py
 ```
 usage: TimeSeriesHandler.py [-h] -i <filename> -o <filename> [-p] (-iq | -st | -no) [-z <s>] [-l]
 
@@ -21,8 +21,8 @@ optional arguments:
   -l, --log             Show detailed logs (default: disabled)
 ```
 
-## Examples
-### Outlier removal with Interquartile range
+## 2. Examples
+### 2.1. Outlier removal with Interquartile range
 Example how to start TimeSeriesHandler.py with Input-file `--input <input.log>`, Output-file `--output output.log`, deactivated plot (plot.png will be saved in the same directory), activated Interquartile range `--iqr` for outlier removal:
 ```
 python.exe TimeSeriesHandler.py --input input.log --output output.log --iqr
@@ -53,7 +53,7 @@ Temp,Hum,Datetime
 22.0,23.0,2022-09-14 19:58:15
 ```
 
-### Outlier removal using Standard deviation with Z-Score = 3
+### 2.2. Outlier removal using Standard deviation with Z-Score = 3
 Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, deactivated plot (plot.png will also be saved in the same directory), activated Standard deviation with 3 Standard deviations `-st -z 3` and detailed logs `-l`:
 ```
 python.exe TimeSeriesHandler.py -i input.log -o output.log -st -z 3 -l
@@ -62,7 +62,7 @@ python.exe TimeSeriesHandler.py -i input.log -o output.log -st -z 3 -l
 **Plot of the Example with Outlier removal using Standard deviation**:
 ![Plot Example 2](plot2.png)
 
-### No Outlier removal
+### 2.3. No Outlier removal
 Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, activated plot `-p` (plot.png will also be saved in the same directory):
 ```
 python.exe TimeSeriesHandler.py -i input.log -o output.log -p
@@ -71,7 +71,7 @@ python.exe TimeSeriesHandler.py -i input.log -o output.log -p
 ![Plot Example 3](plot3.png)
 
 
-## Overview Methods
+## 3. Overview Methods
 1. 	**open_file():** Creates Dataframe from the csv- or log-file in the specified path.
 2.  **rename_columns():** Renames the columns in the dataframe.
 3.  **create_datetime():** Creates pandas Datetime in new column. Drops columns Date and Time.
@@ -88,12 +88,12 @@ python.exe TimeSeriesHandler.py -i input.log -o output.log -p
 14. **plot_data():** Creates Boxplots and Lineplots for Time series Temp and Hum. For a better data comparison two dataframes are compared to each other (before and after outlier removal).
 15. **export_file():** Exports Dateframe to File in the specified path.
 
-## Statistical Background: IQR, SD and Z-Score
+## 4. Statistical Background: IQR, SD and Z-Score
 
 Boxplot (with an interquartile range) and a probability density function (pdf) of a Normal N(0,σ2) Population:
 ![Boxplot IQR and SD](Boxplot_IQR_SD.png)
 
-### Interquartile Range
+### 4.1. Interquartile Range
 In descriptive statistics, the interquartile range (IQR) is a measure of statistical dispersion, which is the spread of the data. It is defined as the difference between the 75th and 25th percentiles of the data. These quartiles are denoted by Q1 (also called the lower quartile), Q2 (the median), and Q3 (also called the upper quartile). The lower quartile corresponds with the 25th percentile and the upper quartile corresponds with the 75th percentile, so IQR = Q3 −  Q1. Following steps have to be followed:
 
 - Find the first quartile, `Q1`.
@@ -103,7 +103,7 @@ In descriptive statistics, the interquartile range (IQR) is a measure of statist
 - Any data point outside this range is considered as outlier and should be removed for further analysis.
 - In boxplot, this IQR method is implemented to detect any extreme data points where the maximum point (the end of high whisker) is `Q3 + 1.5 * IQR` and the minimum point (the start of low whisker) is `Q1 – 1.5 * IQR`.
 
-### Standard deviation
+### 4.2. Standard deviation
 Standard deviation method is similar to IQR procedure. Depending on the set limit either at 2 times stdev or 3 times stdev, we can detect and remove outliers from the dataset. 
 
 $$ Upperlimit = { mean + 3 * stdev } $$
