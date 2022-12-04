@@ -15,6 +15,8 @@ The input-file MUST have this certain structure:
 - Column 4 = Humidity value beginning with string "H="
 - Column 5 = TO value beginning with string "TO="
 
+The first line of the input-file MUST contain all five columns!
+
 Procedure:
 - Creating a Dataframe from input-file
 - Renaming columns of Dataframe
@@ -29,11 +31,6 @@ Procedure:
 - Identifiyng and removing outliers (Standard deviation or Interquatrile Range)
 - Creating Boxplots and Lineplots for Temp and Hum.
 - Exporting Dataframe to output-file
-
-11. **interpolate_nan():** Interpolates NaN values of Temp and Hum.
-12. **remove_outliers():** Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
-13. **plot_data():** Creates Boxplots and Lineplots for Time series Temp and Hum. For a better data comparison two dataframes are compared to each other (before and after outlier removal).
-14. **export_file():** Exports Dateframe to File in the specified path.
 
 """
 
