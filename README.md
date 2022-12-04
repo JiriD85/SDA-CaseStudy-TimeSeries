@@ -43,7 +43,8 @@ optional arguments:
 Boxplot (with an interquartile range) and a probability density function (pdf) of a Normal N(0,σ2) Population:
 ![Boxplot IQR and SD](Boxplot_IQR_SD.png)
 
-1. **Interquartile Range:** In descriptive statistics, the interquartile range (IQR) is a measure of statistical dispersion, which is the spread of the data. It is defined as the difference between the 75th and 25th percentiles of the data. These quartiles are denoted by Q1 (also called the lower quartile), Q2 (the median), and Q3 (also called the upper quartile). The lower quartile corresponds with the 25th percentile and the upper quartile corresponds with the 75th percentile, so IQR = Q3 −  Q1. Following steps have to be followed:
+### Interquartile Range
+In descriptive statistics, the interquartile range (IQR) is a measure of statistical dispersion, which is the spread of the data. It is defined as the difference between the 75th and 25th percentiles of the data. These quartiles are denoted by Q1 (also called the lower quartile), Q2 (the median), and Q3 (also called the upper quartile). The lower quartile corresponds with the 25th percentile and the upper quartile corresponds with the 75th percentile, so IQR = Q3 −  Q1. Following steps have to be followed:
 
 - Find the first quartile, `Q1`.
 - Find the third quartile, `Q3`.
@@ -52,7 +53,8 @@ Boxplot (with an interquartile range) and a probability density function (pdf) o
 - Any data point outside this range is considered as outlier and should be removed for further analysis.
 - In boxplot, this IQR method is implemented to detect any extreme data points where the maximum point (the end of high whisker) is `Q3 + 1.5 * IQR` and the minimum point (the start of low whisker) is `Q1 – 1.5 * IQR`.
 
-2. **Standard deviation:** Standard deviation method is similar to IQR procedure. Depending on the set limit either at 2 times stdev or 3 times stdev, we can detect and remove outliers from the dataset. 
+### Standard deviation:
+Standard deviation method is similar to IQR procedure. Depending on the set limit either at 2 times stdev or 3 times stdev, we can detect and remove outliers from the dataset. 
 
 $$ Upperlimit = { mean + 3 * stdev } $$
 
