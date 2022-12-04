@@ -62,6 +62,7 @@ class FileHandler(object):
 		self.plot = args.plot,
 		self.iqr = args.iqr,
 		self.std = args.std,
+		self.no = args.no,
 		self.log = args.log,
 		self.s = args.s,
 		self.dataframe = pd.DataFrame(),
@@ -227,7 +228,7 @@ class FileHandler(object):
 			console.print(f'[{errorColor}]CHECK_VALID_DATE EXCEPTION - Something strange is going on: {type(e)}, Index: {index}')
 
 	def replace_nat(self) -> None:
-		""" replace_nat(df, mean_timegap)
+		""" replace_nat(self)
 		Checks the dataframe for NaT. Replaces all NaT / invalid timestamps. Uses the mean timegap for calculations.
 		"""    
 		try:
@@ -305,8 +306,8 @@ class FileHandler(object):
 		valid_hum = [0, 100]  # Valid range for humidity values
 		try:
 			# Create copy of the dataframe for visualization
-			global df_before_outliers
-			df_before_outliers = self.dataframe.copy(deep=True)
+			global df_before_check_valid_value
+			df_before_check_valid_value = self.dataframe.copy(deep=True)
 			# Check for valid values and remove values that not match the valid range
 			nan_index = []
 			for index in self.dataframe.index:
@@ -337,6 +338,9 @@ class FileHandler(object):
 		"""
 		Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
 		"""
+		# Create copy of the dataframe for visualization
+		global df_before_outliers
+		df_before_outliers = self.dataframe.copy(deep=True)
 		try:
 			outlier_temp = []
 			outlier_hum = []
@@ -395,22 +399,26 @@ class FileHandler(object):
 				# Remove outliers
 				self.dataframe = self.dataframe[(self.dataframe['Temp'] <= mean_temp+(n_std*sd_temp))]
 				self.dataframe = self.dataframe[(self.dataframe['Hum'] <= mean_hum+(n_std*sd_hum))]
+			if (bool(self.no[0])):
+				console.print(f'[{messageColor}]Outlier removal is deactivated.')
 
-			# Show statistical data
-			if bool(self.log[0]):
-				print(f'Mean Temperature: {mean_temp}')
-				print(f'Standard deviation of Temperature: {sd_temp}')
-				print(f'Upper Limit Temperature: {upper_limit_temp}')
-				print(f'Lower Limit Temperature: {lower_limit_temp}')
-				print(f'Mean Humidity: {mean_hum}')
-				print(f'Standard deviation of Humidity: {sd_hum}')
-				print(f'Upper Limit Humidity: {upper_limit_hum}')
-				print(f'Lower Limit Humidity: {lower_limit_hum}')
+			if not (bool(self.no[0])):
+				# Show statistical data
+				if bool(self.log[0]):
+					print(f'Mean Temperature: {mean_temp}')
+					print(f'Standard deviation of Temperature: {sd_temp}')
+					print(f'Upper Limit Temperature: {upper_limit_temp}')
+					print(f'Lower Limit Temperature: {lower_limit_temp}')
+					print(f'Mean Humidity: {mean_hum}')
+					print(f'Standard deviation of Humidity: {sd_hum}')
+					print(f'Upper Limit Humidity: {upper_limit_hum}')
+					print(f'Lower Limit Humidity: {lower_limit_hum}')
 
-			# Show Outliers	
-			console.print(f'[{messageColor}]Temperature Outliers in dataset: {outlier_temp}')
-			console.print(f'[{messageColor}]Humidity Outliers in dataset: {outlier_hum}')
-			console.print(f'[{messageColor}]{len(outlier_temp) + len(outlier_hum)} Outliers removed.')
+			if not (bool(self.no[0])):
+				# Show Outliers	
+				console.print(f'[{messageColor}]Temperature Outliers in dataset: {outlier_temp}')
+				console.print(f'[{messageColor}]Humidity Outliers in dataset: {outlier_hum}')
+				console.print(f'[{messageColor}]{len(outlier_temp) + len(outlier_hum)} Outliers removed.')
 		except Exception as e:
 			console.print(f'[{errorColor}]REPLACE_OUTLIERS EXCEPTION - Something strange is going on: {type(e)}')
 
@@ -430,10 +438,11 @@ class FileHandler(object):
 		"""
 		try:
 			# Dataframes
+			data_raw = df_before_check_valid_value
 			data_before = df_before_outliers
 			data_after = self.dataframe
 			# Create Plot
-			fig, ax = plt.subplots(2, 2, figsize=(14,7))
+			fig, ax = plt.subplots(3, 2, figsize=(14,10))
 			fig.subplots_adjust(hspace=0.5)
 			# Plot Title
 			if bool(self.std[0]):
@@ -443,19 +452,26 @@ class FileHandler(object):
 			# Boxplot
 			ax[0,0].set_xlim(0,150)
 			ax[1,0].set_xlim(0,150)
-			ax[0,0].set_title('Boxplot before outlier removal')
-			ax[1,0].set_title('Boxplot after outlier removal')
+			ax[2,0].set_xlim(0,150)
+			ax[0,0].set_title('Boxplot before removal of invalid values')
+			ax[1,0].set_title('Boxplot before outlier removal')
+			ax[2,0].set_title('Boxplot after outlier removal')
 			ax[0,0].set_xlabel('Values')
 			ax[1,0].set_xlabel('Values')
-			sns.boxplot(ax=ax[0,0], data=data_before[['Temp', 'Hum']], orient="h")
-			sns.boxplot(ax=ax[1,0], data=data_after[['Temp', 'Hum']], orient="h")
+			ax[2,0].set_xlabel('Values')
+			sns.boxplot(ax=ax[0,0], data=data_raw[['Temp', 'Hum']], orient="h")
+			sns.boxplot(ax=ax[1,0], data=data_before[['Temp', 'Hum']], orient="h")
+			sns.boxplot(ax=ax[2,0], data=data_after[['Temp', 'Hum']], orient="h")
 			# Lineplot
-			ax[0,1].set_title('Lineplot before outlier removal')
-			ax[1,1].set_title('Lineplot after outlier removal')
+			ax[0,1].set_title('Lineplot before removal of invalid values')
+			ax[1,1].set_title('Lineplot before outlier removal')
+			ax[2,1].set_title('Lineplot after outlier removal')
 			ax[0,1].set_xlabel('Measurements')
 			ax[1,1].set_xlabel('Measurements')
-			sns.lineplot(ax=ax[0,1], data=data_before[['Temp', 'Hum']])
-			sns.lineplot(ax=ax[1,1], data=data_after[['Temp', 'Hum']])
+			ax[2,1].set_xlabel('Measurements')
+			sns.lineplot(ax=ax[0,1], data=data_raw[['Temp', 'Hum']])
+			sns.lineplot(ax=ax[1,1], data=data_before[['Temp', 'Hum']])
+			sns.lineplot(ax=ax[2,1], data=data_after[['Temp', 'Hum']])
 			# Save Plot
 			fig.savefig('plot.png')
 			# Show Plot
@@ -483,6 +499,7 @@ if __name__ == '__main__':
 	parser.add_argument('-p','--plot', action='store_true', dest='plot', default=False, help='Show Plot (default: disabled)')
 	outlier.add_argument('-iq','--iqr', action='store_true', dest='iqr', default=False, help='Use IQR for outlier removal (default: disabled)')
 	outlier.add_argument('-st','--std', action='store_true', dest='std', default=False, help='Use Z-Score for outlier removal (default: disabled)')
+	outlier.add_argument('-no','--noremoval', action='store_true', dest='no', default=False, help='No outlier removal when specified (default: disabled)')
 	parser.add_argument('-z','--zscore', action='store', dest='s', default=3, metavar='<s>', required='--std' in sys.argv, type=float, help='Z-Score for outlier detection (default: 3)')
 	parser.add_argument('-l','--log', action='store_true', dest='log', default=False, help='Show detailed logs (default: disabled)')
 	

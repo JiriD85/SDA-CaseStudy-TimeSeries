@@ -18,15 +18,54 @@ optional arguments:
 ```
 
 ## Examples
-1. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, deactivated plot (plot.png will be saved in the same directory), activated Interquartile range `--iqr` for outlier removal:
+### Outlier removal with Interquartile range
+Example how to start TimeSeriesHandler.py with Input-file `--input <input.log>`, Output-file `--output output.log`, deactivated plot (plot.png will be saved in the same directory), activated Interquartile range `--iqr` for outlier removal:
 ```
 python.exe TimeSeriesHandler.py --input input.log --output output.log --iqr
 ```
 
-1. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, activated plot (plot.png will also be saved in the same directory), activated Standard deviation with 2 Standard deviations `--std 2` and detailed logs `--log`:
+**Plot of the Example with Outlier removal using Interquartile range**:
+![Plot Example 1](plot1.png)
+
+
+Part of the content of `input.log`:
+```
+1022-09-14 19:33:07 T=22.0 H=20.0 TO=45
+1022-09-14 19:38:10 T=22.0 H=20.0 TO=45
+1022-09-14 19:43:11 T=22.0 H=26.0 TO=45
+2022-09-14 19:48:14 T=22.0 H=26.0 TO=45
+2022-09-14 19:53:15 T=22.0 H=20.0 TO=45
+2022-09-14 19:58:15 T=22.0 H=23.0 TO=45
+```
+
+Part of the content of `output.log`
+```
+Temp,Hum,Datetime
+22.0,20.0,2022-09-14 19:32:47
+22.0,20.0,2022-09-14 19:37:54
+22.0,26.0,2022-09-14 19:43:01
+22.0,26.0,2022-09-14 19:48:08
+22.0,20.0,2022-09-14 19:53:15
+22.0,23.0,2022-09-14 19:58:15
+```
+
+### Outlier removal using Standard deviation with Z-Score = 3
+Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, deactivated plot (plot.png will also be saved in the same directory), activated Standard deviation with 3 Standard deviations `-st -z 3` and detailed logs `-l`:
 ```
 python.exe TimeSeriesHandler.py -i input.log -o output.log -st -z 3 -l
 ```
+
+**Plot of the Example with Outlier removal using Standard deviation**:
+![Plot Example 2](plot2.png)
+
+### No Outlier removal
+Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, activated plot `-p` (plot.png will also be saved in the same directory):
+```
+python.exe TimeSeriesHandler.py -i input.log -o output.log -p
+```
+**Plot of the Example without outlier removal**:
+![Plot Example 3](plot3.png)
+
 
 ## Overview Methods
 1. 	**open_file():** Creates Dataframe from the csv- or log-file in the specified path.
