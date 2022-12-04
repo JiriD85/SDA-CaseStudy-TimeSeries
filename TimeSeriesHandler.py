@@ -32,9 +32,10 @@ class FileHandler(object):
 		self.inputfile = args.inputfile,
 		self.outputfile = args.outputfile,
 		self.plot = args.plot,
-		self.drop = args.drop,
 		self.iqr = args.iqr,
 		self.std = args.std,
+		self.log = args.log,
+		self.s = args.s,
 		self.dataframe = pd.DataFrame(),
 		self.first_index = 0,
 		self.last_index = 0,
@@ -47,7 +48,8 @@ class FileHandler(object):
 			data_url = args.inputfile
 			self.dataframe = pd.read_csv(data_url, sep=" ", header=None, index_col=None)
 			console.print(f'[{messageColor}]Input-file processed: {args.inputfile}')
-			self.dataframe.info()
+			if bool(self.log[0]):
+				self.dataframe.info()
 		except OSError:
 			console.print(f'[{errorColor}]Cannot open Input-file: {args.inputfile}')
 
@@ -56,7 +58,8 @@ class FileHandler(object):
 			data_url = args.outputfile
 			self.dataframe.to_csv(data_url, index=False)
 			console.print(f'[{messageColor}]Output-file processed: {args.outputfile}')
-			self.dataframe.info()
+			if bool(self.log[0]):
+				self.dataframe.info()
 		except OSError:
 			console.print(f'[{errorColor}]Cannot export Output-file: {args.outputfile}')
 
@@ -132,6 +135,8 @@ class FileHandler(object):
 
 		try:
 			# Checking for valid dates and replacing invalid dates with NaT
+			if bool(self.log[0]):
+				print("Change invalid Datetime to NaT...")
 			for index in self.dataframe.index:
 
 				if self.first_index >= index:
@@ -159,10 +164,12 @@ class FileHandler(object):
 					is_nat = False           
 			
 				# Change Datetime to NaT if (start_time <= datecheck <= now), if actual_date >= next_date, if duplicate
+
 				if not is_nat:
 					if not last_nat:
 						if (not (start_time <= actual_date <= now)) or (actual_date >= next_date) or (previous_date >= actual_date):
-							print("df[" + str(index) + "]['Datetime']=" + str(self.dataframe['Datetime'][index]) + " is not valid! Changing invalid Date to NaT.")
+							if bool(self.log[0]):
+								print("df[" + str(index) + "]['Datetime']=" + str(self.dataframe['Datetime'][index]) + " is not valid! Changing invalid Date to NaT.")
 							# Changing invalid Date to NaT
 							self.dataframe['Datetime'][index] = str("NaT")
 							#self.dataframe.loc[self.dataframe.Datetime == index] = str("NaT")
@@ -181,15 +188,19 @@ class FileHandler(object):
 			self.dataframe.head(32)
 
 			# Checking for NaT
-			print("Checking for NaT...")
+			if bool(self.log[0]):
+				print("Checking for NaT...")
 			for index in self.dataframe.index:
 				if np.isnat(np.datetime64(str(self.dataframe['Datetime'][index]))):
-					print("df[" + str(index) + "]['Datetime']=" + str(self.dataframe['Datetime'][index]) + ": " + str(np.isnat(np.datetime64(str(self.dataframe['Datetime'][index])))))
+					if bool(self.log[0]):
+						print("df[" + str(index) + "]['Datetime']=" + str(self.dataframe['Datetime'][index]) + ": " + str(np.isnat(np.datetime64(str(self.dataframe['Datetime'][index])))))
 					nat_index.append(index)
-			print(f"Indices with NaT: {nat_index}")
+			if bool(self.log[0]):
+				print(f"Indices with NaT: {nat_index}")
 				
 			# #replacing NaT with calculated Timestamps
-			print("Replacing NaT with calculated Timestamps...")
+			if bool(self.log[0]):
+				print("Replacing NaT with calculated Timestamps...")
 			# for nat in reversed(nat_index):
 			for nat in nat_index[::-1]:
 				if (first_index < nat):
@@ -204,7 +215,8 @@ class FileHandler(object):
 				else: 
 					self.dataframe['Datetime'][nat] = self.dataframe['Datetime'][first_index] - mean_timegap
 			
-				print("Calculated Timestamp for: df[" + str(nat) + "]['Datetime']=" + str(self.dataframe['Datetime'][nat]))
+				if bool(self.log[0]):
+					print("Calculated Timestamp for: df[" + str(nat) + "]['Datetime']=" + str(self.dataframe['Datetime'][nat]))
 			console.print(f'[{messageColor}]NaT replaced with calculated Timestamps. Indices: {nat_index}')
 		except Exception as e:
 			console.print(f'[{errorColor}]REPLACE_NAT EXCEPTION - Something strange is going on: {type(e)}, Index: {index}')
@@ -263,33 +275,77 @@ class FileHandler(object):
 	
 	def remove_outliers(self) -> None:
 			try:
-				# if arg iqr = True --> Identify outliers with Interquartile Range
-				if bool(self.iqr[0]):
+				# if std = True --> Identify outliers with Standard deviation
+				if bool(self.std[0]):
+					# Standard deviation
+					n_std = float(self.s[0])
+					# Variables
+					mean_temp = self.dataframe['Temp'].mean()
+					sd_temp = self.dataframe['Temp'].std()
+					lower_limit_temp = mean_temp - (n_std*sd_temp)
+					upper_limit_temp = mean_temp + (n_std*sd_temp)
+					if bool(self.log[0]):
+						print(f'Mean Temperature: {mean_temp}')
+						print(f'Standard deviation of Temperature: {sd_temp}')
+						print(f'Upper Limit Temperature: {upper_limit_temp}')
+						print(f'Lower Limit Temperature: {lower_limit_temp}')
+					mean_hum = self.dataframe['Hum'].mean()
+					sd_hum = self.dataframe['Hum'].std()
+					lower_limit_hum = mean_hum - (n_std*sd_hum)
+					upper_limit_hum = mean_hum + (n_std*sd_hum)
+					if bool(self.log[0]):
+						print(f'Mean Humidity: {mean_hum}')
+						print(f'Standard deviation of Humidity: {sd_hum}')
+						print(f'Upper Limit Humidity: {upper_limit_hum}')
+						print(f'Lower Limit Humidity: {lower_limit_hum}')
+					# Find and remove outliers
+					# Temperature
+					threshold = n_std
+					outlier_temp = []
+					for temp in self.dataframe['Temp']:
+						z = (temp - mean_temp)/sd_temp 
+						if z > threshold:
+							outlier_temp.append(temp)
+					self.dataframe = self.dataframe[(self.dataframe['Temp'] <= upper_limit_temp)]
+					self.dataframe = self.dataframe[(self.dataframe['Temp'] <= lower_limit_temp)]
+					# Humidity 
+					threshold = n_std
+					outlier_hum = []
+					for hum in self.dataframe['Hum']:
+						z = (hum - mean_hum)/sd_hum 
+						if z > threshold:
+							outlier_hum.append(hum)
+					self.dataframe = self.dataframe[(self.dataframe['Hum'] <= upper_limit_hum)]
+					self.dataframe = self.dataframe[(self.dataframe['Hum'] <= lower_limit_hum)]
+	
+				# else --> Identify outliers with Interquartile Range
+				else:
 					# iqr
 					q1_temp = self.dataframe['Temp'].quantile(0.25)
 					q3_temp = self.dataframe['Temp'].quantile(0.75)
 					iqr_temp = q3_temp - q1_temp
+					lower_limit_temp = q1_temp - 1.5 * iqr_temp
+					higher_limit_temp = q3_temp + 1.5 * iqr_temp
 					q1_hum = self.dataframe['Hum'].quantile(0.25)
 					q3_hum = self.dataframe['Hum'].quantile(0.75)
-					iqr_hum = q3_temp - q1_temp
-					self.dataframe = self.dataframe[~((self.dataframe['Temp'] < (q1_temp - 1.5 * iqr_temp)) | (self.dataframe['Temp'] > (q3_temp + 1.5 * iqr_temp)))]
-					self.dataframe = self.dataframe[~((self.dataframe['Hum'] < (q1_hum - 1.5 * iqr_hum)) | (self.dataframe['Hum'] > (q3_hum + 1.5 * iqr_hum)))]
-				# else --> Identify outliers with Standard Deviation
-				else:
-					# standard deviation
-					n_std = int(self.std[0])
-					# Temperature
-					mean = self.dataframe['Temp'].mean()
-					sd = self.dataframe['Temp'].std()
-					self.dataframe = self.dataframe[(self.dataframe['Temp'] <= mean+(n_std*sd))]
-					self.dataframe = self.dataframe[(self.dataframe['Hum'] <= mean+(n_std*sd))]	
-					# Humidity
-					mean = self.dataframe['Hum'].mean()
-					sd = self.dataframe['Hum'].std()
-				# if arg drop = True
-				# if bool(self.drop[0]):
-					# Outlier Identification -> NaN -> Replace NaN
-				console.print(f'[{messageColor}]Outliers removed.')
+					iqr_hum = q3_hum - q1_hum
+					lower_limit_hum = q1_hum - 1.5 * iqr_hum
+					higher_limit_hum = q3_hum + 1.5 * iqr_hum
+					# Find and remove outliers
+					outlier_hum = []
+					for hum in self.dataframe['Hum']:
+						if (hum > higher_limit_hum) or (hum < lower_limit_hum) :
+							outlier_hum.append(hum)
+					outlier_temp = []
+					for temp in self.dataframe['Temp']:
+						if (temp > higher_limit_temp) or (temp < lower_limit_temp) :
+							outlier_temp.append(temp)
+					self.dataframe = self.dataframe[~((self.dataframe['Temp'] < (lower_limit_temp)) | (self.dataframe['Temp'] > (higher_limit_temp)))]
+					self.dataframe = self.dataframe[~((self.dataframe['Hum'] < (lower_limit_hum)) | (self.dataframe['Hum'] > (higher_limit_hum)))]
+				# Show Outliers	
+				console.print(f'[{messageColor}]Temperature Outliers in dataset: {outlier_temp}')
+				console.print(f'[{messageColor}]Humidity Outliers in dataset: {outlier_hum}')
+				console.print(f'[{messageColor}]{len(outlier_temp) + len(outlier_hum)} Outliers removed.')
 			except Exception as e:
 				console.print(f'[{errorColor}]REPLACE_OUTLIERS EXCEPTION - Something strange is going on: {type(e)}')
 
@@ -302,10 +358,10 @@ class FileHandler(object):
 				fig, ax = plt.subplots(2, 2, figsize=(14,7))
 				fig.subplots_adjust(hspace=0.5)
 				# Plot Title
-				if bool(self.iqr[0]):
-					fig.suptitle('Sensor Data: Humidity and Temperature (Outlier removal with Interquartile Range: Q1 = 0.25, Q3 = 0.75 )')
+				if bool(self.std[0]):
+					fig.suptitle(f'Sensor Data: Humidity and Temperature (Outlier removal with Standard deviation: SD = {int(self.s[0])} )')
 				else:
-					fig.suptitle(f'Sensor Data: Humidity and Temperature (Outlier removal with Standard deviation: SD = {int(self.std[0])} )')
+					fig.suptitle('Sensor Data: Humidity and Temperature (Outlier removal with Interquartile Range: Q1 = 0.25, Q3 = 0.75 )')
 				# Boxplot
 				ax[0,0].set_xlim(0,150)
 				ax[1,0].set_xlim(0,150)
@@ -335,21 +391,22 @@ class FileHandler(object):
 	
 if __name__ == '__main__':
 	console = Console()
-	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - TimeSeriesHandler.py STARTED![/bold]\n\n')
 
 	# parse command line argiments
 	parser = argparse.ArgumentParser()
 
 	# arguments
-	parser.add_argument('--input', action='store', dest='inputfile', metavar='<filename>', help='specify the path to the input-file')
-	parser.add_argument('--output', action='store', dest='outputfile', metavar='<filename>', help='specify the path to the output-file')
+	parser.add_argument('--input', action='store', dest='inputfile', metavar='<filename>', help='Specify the path to the input-file')
+	parser.add_argument('--output', action='store', dest='outputfile', metavar='<filename>', help='Specify the path to the output-file')
 	parser.add_argument('--plot', action='store_true', dest='plot', default=False, help='Show Plot (default: disabled)')
-	parser.add_argument('--drop', action='store_true', dest='drop', default=False, help='Drop outliers (default: disabled)')
-	parser.add_argument('--iqr', action='store_true', dest='iqr', default=False, help='Use IQR for outlier removal (default: disabled -> Standard deviation)')
-	parser.add_argument('--zscore', action='store', dest='zscore', default=3, metavar='<zscore>', type=int, help='Z-Score for outlier detection (default: 3)')
-	parser.add_argument('--std', action='store', dest='std', default=3, metavar='<std>', type=int, help='Standard deviations for outlier detection (default: 3)')
+	parser.add_argument('--iqr', action='store_true', dest='iqr', default=True, help='Use IQR for outlier removal (default: enabled)')
+	parser.add_argument('--std', action='store_true', dest='std', default=False, help='Use Z-Score for outlier removal (default: disabled)')
+	parser.add_argument('--s', action='store', dest='s', default=3, metavar='<s>', type=float, help='Z-Score for outlier detection (default: 3)')
+	parser.add_argument('--log', action='store_true', dest='log', default=False, help='Show detailed logs (default: disabled)')
 	
 	args = parser.parse_args()
+
+	console.print(f'\n[{highlightColor}][bold]Case Study - Time Series - Dockal - TimeSeriesHandler.py STARTED![/bold]\n\n')
 
 ###### Sensor Data Application #######
 try:
