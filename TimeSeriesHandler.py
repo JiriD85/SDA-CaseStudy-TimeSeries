@@ -499,7 +499,7 @@ if __name__ == '__main__':
 	parser.add_argument('-p','--plot', action='store_true', dest='plot', default=False, help='Show Plot (default: disabled)')
 	outlier.add_argument('-iq','--iqr', action='store_true', dest='iqr', default=False, help='Use IQR for outlier removal (default: disabled)')
 	outlier.add_argument('-st','--std', action='store_true', dest='std', default=False, help='Use Z-Score for outlier removal (default: disabled)')
-	outlier.add_argument('-no','--noremoval', action='store_true', dest='no', default=False, help='No outlier removal when specified (default: disabled)')
+	outlier.add_argument('-no','--noremoval', action='store_true', dest='no', default=False, help='No outlier removal (default: disabled)')
 	parser.add_argument('-z','--zscore', action='store', dest='s', default=3, metavar='<s>', required='--std' in sys.argv, type=float, help='Z-Score for outlier detection (default: 3)')
 	parser.add_argument('-l','--log', action='store_true', dest='log', default=False, help='Show detailed logs (default: disabled)')
 	
