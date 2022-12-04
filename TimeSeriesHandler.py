@@ -492,7 +492,7 @@ class FileHandler(object):
 				# Show Outliers	
 				console.print(f'[{messageColor}]Temperature Outliers in dataset: {outlier_temp}')
 				console.print(f'[{messageColor}]Humidity Outliers in dataset: {outlier_hum}')
-				console.print(f'[{messageColor}]{len(outlier_temp) + len(outlier_hum)} Outliers removed.')
+				console.print(f'[{messageColor}]{len(outlier_temp) + len(outlier_hum)} Outliers removed/replaced.')
 		except Exception as e:
 			console.print(f'[{errorColor}]REPLACE_OUTLIERS EXCEPTION - Something strange is going on: {type(e)}')
 
