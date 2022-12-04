@@ -405,8 +405,10 @@ class FileHandler(object):
 					if z > threshold:
 						outlier_hum.append(hum)
 				# Remove outliers
-				self.dataframe = self.dataframe[(self.dataframe['Temp'] <= mean_temp+(n_std*sd_temp))]
-				self.dataframe = self.dataframe[(self.dataframe['Hum'] <= mean_hum+(n_std*sd_hum))]
+				self.dataframe = self.dataframe[(self.dataframe['Temp'] < mean_temp+(n_std*sd_temp))]
+				self.dataframe = self.dataframe[(self.dataframe['Temp'] > mean_temp-(n_std*sd_temp))]
+				self.dataframe = self.dataframe[(self.dataframe['Hum'] < mean_hum+(n_std*sd_hum))]
+				self.dataframe = self.dataframe[(self.dataframe['Hum'] > mean_hum-(n_std*sd_hum))]
 			if (bool(self.no[0])):
 				console.print(f'[{messageColor}]Outlier removal is deactivated.')
 
