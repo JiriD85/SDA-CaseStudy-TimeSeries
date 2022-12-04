@@ -346,6 +346,7 @@ if __name__ == '__main__':
 	parser.add_argument('--plot', action='store_true', dest='plot', default=False, help='Show Plot (default: disabled)')
 	parser.add_argument('--drop', action='store_true', dest='drop', default=False, help='Drop outliers (default: disabled)')
 	parser.add_argument('--iqr', action='store_true', dest='iqr', default=False, help='Use IQR for outlier removal (default: disabled -> Standard deviation)')
+	parser.add_argument('--zscore', action='store', dest='zscore', default=3, metavar='<zscore>', type=int, help='Z-Score for outlier detection (default: 3)')
 	parser.add_argument('--std', action='store', dest='std', default=3, metavar='<std>', type=int, help='Standard deviations for outlier detection (default: 3)')
 	
 	args = parser.parse_args()

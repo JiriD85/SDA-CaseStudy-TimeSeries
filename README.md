@@ -22,20 +22,20 @@ optional arguments:
 `python.exe TimeSeriesHandler.py --input input.log --output output.log --plot --iqr`
 
 ## Overview Methods
-1. 	open_file(): Creates Dataframe from the csv- or log-file in the specified path.
-2.  rename_columns(): Renames the columns in the dataframe.
-3.  create_datetime(): Creates pandas Datetime in new column. Drops columns Date and Time.
-4.  get_first_valid_timestamp(): Gets the first valid timestamp of the Dataframe.
-5.  get_last_valid_timestamp(): Gets the last valid timestamp of the Dataframe.
-6.  calculate_mean_timegap(): Calculates the mean timegap between timestamps.
-7.  check_valid_date(): Checks if dates are valid. Changes invalid dates to NaT.
-8.  replace_nat(): Replaces all NaT / invalid timestamps. Uses the mean timegap for calculations.
-9.  format_data_columns(): Replacing Strings in Temp and Hum. Drops column TO. Converts values to float. Replaces empty string with np.nan. Creates NaN Index.
-10. check_valid_value(): Checks if the values of Temp and Hum are in a valid range. Invalid values are replaced with NaN.
-11. interpolate_nan(): 
-12. remove_outliers()
-13. plot_data()
-14. export_file()
+1. 	**open_file():** Creates Dataframe from the csv- or log-file in the specified path.
+2.  **rename_columns():** Renames the columns in the dataframe.
+3.  **create_datetime():** Creates pandas Datetime in new column. Drops columns Date and Time.
+4.  **get_first_valid_timestamp():** Gets the first valid timestamp of the Dataframe.
+5.  **get_last_valid_timestamp():** Gets the last valid timestamp of the Dataframe.
+6.  **calculate_mean_timegap():** Calculates the mean timegap between timestamps.
+7.  **check_valid_date():** Checks if dates are valid. Changes invalid dates to NaT.
+8.  **replace_nat():** Replaces all NaT / invalid timestamps. Uses the mean timegap for calculations.
+9.  **format_data_columns():** Replacing Strings in Temp and Hum. Drops column TO. Converts values to float. Replaces empty string with np.nan. Creates NaN Index.
+10. **check_valid_value():** Checks if the values of Temp and Hum are in a valid range. Invalid values are replaced with NaN.
+11. **interpolate_nan():** 
+12. **remove_outliers():**
+13. **plot_data():**
+14. **export_file():**
 
 ## Statistical Background IQR, SD and Z-Score
 
@@ -53,9 +53,9 @@ Boxplot (with an interquartile range) and a probability density function (pdf) o
 
 2. **Standard deviation:** Standard deviation method is similar to IQR procedure. Depending on the set limit either at 2 times stdev or 3 times stdev, we can detect and remove outliers from the dataset:
 
-$$ Upper_limit = { mean + 3 * stdev } $$
+$$ Upperlimit = { mean + 3 * stdev } $$
 
-$$ Lower_limit = { mean - 3 * stdev } $$
+$$ Lowerlimit = { mean - 3 * stdev } $$
 
 3. **Z-Score:** Z-score is just another form of standard deviation procedure. Z-score is used to convert the data into another dataset with mean = 0.
 
