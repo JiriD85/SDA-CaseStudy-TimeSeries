@@ -60,4 +60,4 @@ Boxplot (with an interquartile range) and a probability density function (pdf) o
 
 Here, $\bar x$ is the mean value and $s$ is standard deviation. Once the data is converted, the center becomes 0 and the z-score corresponding to each data point represents the distance from the center in terms of standard deviation. For example, a z-score of 2.5 indicates that the data point is 2.5 standard deviation away from the mean. Usually z-score = 3 is considered as a cut-off value to set the limit. Therefore, any z-score greater than +3 or less than -3 is considered as outlier which is pretty much similar to standard deviation method:
 
-$$ Z = {x_{i} - \$\bar x$ \over s} $$
+$$ Z = {x_{i} - \bar x \over s} $$
