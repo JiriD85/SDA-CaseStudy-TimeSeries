@@ -1,5 +1,8 @@
 # SDA-CaseStudy-TimeSeries
 
+**Link to GitHub Repository:**
+[https://github.com/JiriD85/SDA-CaseStudy-TimeSeries](https://github.com/JiriD85/SDA-CaseStudy-TimeSeries)
+
 ## Usage of TimeSeriesHandler.py
 ```
 usage: TimeSeriesHandler.py [-h] -i <filename> -o <filename> [-p] (-iq | -st | -no) [-z <s>] [-l]
@@ -13,7 +16,7 @@ optional arguments:
   -p, --plot            Show Plot (default: disabled)
   -iq, --iqr            Use IQR for outlier removal (default: disabled)
   -st, --std            Use Z-Score for outlier removal (default: disabled)
-  -no, --noremoval      No outlier removal when (default: disabled)
+  -no, --noremoval      No outlier removal (default: disabled)
   -z <s>, --zscore <s>  Z-Score for outlier detection (default: 3)
   -l, --log             Show detailed logs (default: disabled)
 ```
