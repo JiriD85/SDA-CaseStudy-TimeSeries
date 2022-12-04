@@ -18,6 +18,7 @@ The input-file MUST have this certain structure:
 Procedure:
 - Creating a Dataframe from input-file
 - Renaming columns of Dataframe
+- Removing duplicates
 - Creating Datetime columns from Date and Time
 - Dropping Date and Time columns
 - Checking if the Datetime values are valid, if not the values are changed to NaT
