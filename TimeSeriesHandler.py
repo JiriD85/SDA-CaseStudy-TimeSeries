@@ -45,6 +45,7 @@ import warnings
 warnings.filterwarnings(action='ignore')
 import argparse, sys
 import pathlib, os
+import statistics
 parent = pathlib.Path(os.path.abspath(os.path.dirname(__file__))).parent.parent
 sys.path.append(f'{parent}')
 from rich.console import Console
@@ -83,7 +84,9 @@ class FileHandler(object):
 			if bool(self.log[0]):
 				self.dataframe.info()
 		except OSError:
-			console.print(f'[{errorColor}]Cannot open Input-file: {args.inputfile}')
+			console.print(f'[{errorColor}]OPEN FILE EXCEPTION - Cannot open Input-file: {args.inputfile}')
+		except Exception as e:
+			console.print(f'[{errorColor}]OPEN FILE EXCEPTION - Something strange is going on: {type(e)}')
 
 	def export_file(self) -> None:
 		"""
@@ -96,7 +99,9 @@ class FileHandler(object):
 			if bool(self.log[0]):
 				self.dataframe.info()
 		except OSError:
-			console.print(f'[{errorColor}]Cannot export Output-file: {args.outputfile}')
+			console.print(f'[{errorColor}]EXPORT_FILE EXCEPTION - Cannot export Output-file: {args.outputfile}')
+		except Exception as e:
+			console.print(f'[{errorColor}]EXPORT_FILE EXCEPTION - Something strange is going on: {type(e)}')
 
 	def rename_columns(self) -> None:
 		"""
@@ -107,7 +112,7 @@ class FileHandler(object):
 			self.dataframe.columns = columns
 			console.print(f'[{messageColor}]Columns renamed: {str(columns)}')
 		except Exception as e:
-			console.print(f'[{errorColor}]EXCEPTION - Something strange is going on: {type(e)}')
+			console.print(f'[{errorColor}]RENAME_COLUMNS EXCEPTION - Something strange is going on: {type(e)}')
 
 	def create_datetime(self) -> None:
 		"""
@@ -121,7 +126,7 @@ class FileHandler(object):
 			self.dataframe = self.dataframe.drop(columns=drop)
 			console.print(f'[{messageColor}]Datetime created. Columns dropped: {str(drop)}')
 		except Exception as e:
-			console.print(f'[{errorColor}]EXCEPTION - Something strange is going on: {type(e)}')
+			console.print(f'[{errorColor}]CREATE_DATETIME EXCEPTION - Something strange is going on: {type(e)}')
 
 	def get_first_valid_timestamp(self) -> None:
 		"""
@@ -140,7 +145,7 @@ class FileHandler(object):
 			self.start_time = start_time
 			console.print(f'[{messageColor}]First valid Timestamp: {start_time}, index: {first_index}')
 		except Exception as e:
-			console.print(f'[{errorColor}]EXCEPTION - Something strange is going on: {type(e)}')
+			console.print(f'[{errorColor}]GET_FIRST_VALID_TIMESTAMP EXCEPTION - Something strange is going on: {type(e)}')
 
 	def get_last_valid_timestamp(self) -> None:
 		"""
@@ -161,7 +166,7 @@ class FileHandler(object):
 			self.end_time = end_time
 			console.print(f'[{messageColor}]Last valid Timestamp: {end_time}, index: {last_index}')
 		except Exception as e:
-			console.print(f'[{errorColor}]EXCEPTION - Something strange is going on: {type(e)}')
+			console.print(f'[{errorColor}]GET_LAST_VALID_TIMESTAMP EXCEPTION - Something strange is going on: {type(e)}')
 
 	def calculate_mean_timegap(self):
 		"""
@@ -169,11 +174,14 @@ class FileHandler(object):
 		"""
 		try:
 			# calculating mean timegap between timestamps
-			self.mean_timegap = (self.end_time - self.start_time) / (self.last_index - self.first_index)
-			self.mean_timegap = pd.to_timedelta(str(self.mean_timegap)).round('1s')
-			console.print(f'[{messageColor}]Mean Timegap between Timestamps: {self.mean_timegap}')
+			datetimes = self.dataframe['Datetime']
+			# subtracting datetimes gives timedeltas
+			timedeltas = [datetimes[i]-datetimes[i-1] for i in range(1, len(datetimes))]
+			self.mean_timegap = statistics.median(timedeltas)
+
+			console.print(f'[{messageColor}]Median Timegap between Timestamps: {self.mean_timegap}')
 		except Exception as e:
-			console.print(f'[{errorColor}]EXCEPTION - Something strange is going on: {type(e)}')
+			console.print(f'[{errorColor}]CALCULATE_MEAN_TIMEGAP EXCEPTION - Something strange is going on: {type(e)}')
 
 	def check_valid_date(self):
 		""" check_valid_date(self)
@@ -477,7 +485,7 @@ class FileHandler(object):
 			# Show Plot
 			if bool(self.plot[0]):
 				plt.show()
-			console.print(f'[{messageColor}]Data plot accomplished.')
+			console.print(f'[{messageColor}]Data plot accomplished: plot.png')
 		except Exception as e:
 			console.print(f'[{errorColor}]PLOT_DATA EXCEPTION - Something strange is going on: {type(e)}')
 
