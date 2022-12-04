@@ -28,7 +28,7 @@ Procedure:
 - Formating Data value columns (Replacing Strings in Temp and Hum. Dropping column TO. Converting values to float. Replacing empty string with np.nan. Creating NaN Index.)
 - Checking if Temp and Hum values are in a valid range (Invalid values are replaced with NaN)
 - Interpolating NaN values of Temp and Hum columns.
-- Identifiyng and removing outliers (Standard deviation or Interquatrile Range)
+- Identifiyng and removing/replacing outliers (Standard deviation or Interquatrile Range)
 - Creating Boxplots and Lineplots for Temp and Hum.
 - Exporting Dataframe to output-file
 
@@ -64,6 +64,7 @@ class FileHandler(object):
 		self.iqr = args.iqr,
 		self.std = args.std,
 		self.no = args.no,
+		self.outlier = args.outlier,
 		self.log = args.log,
 		self.s = args.s,
 		self.dataframe = pd.DataFrame(),
@@ -344,7 +345,8 @@ class FileHandler(object):
 	
 	def remove_outliers(self) -> None:
 		"""
-		Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
+		Identifies and removes/replaces outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
+		Replacement controlled via args: choices = ['remove', 'mean', 'median', 'limit', 'mode']
 		"""
 		# Create copy of the dataframe for visualization
 		global df_before_outliers
@@ -378,9 +380,40 @@ class FileHandler(object):
 				for temp in self.dataframe['Temp']:
 					if (temp > upper_limit_temp) or (temp < lower_limit_temp) :
 						outlier_temp.append(temp)
-				# Remove outliers
-				self.dataframe = self.dataframe[~((self.dataframe['Temp'] < (q1_temp - 1.5 * iqr_temp)) | (self.dataframe['Temp'] > (q3_temp + 1.5 * iqr_temp)))]
-				self.dataframe = self.dataframe[~((self.dataframe['Hum'] < (q1_hum - 1.5 * iqr_hum)) | (self.dataframe['Hum'] > (q3_hum + 1.5 * iqr_hum)))]
+
+				# Handling with outliers
+				# Trimming outliers (removing)
+				if (self.outlier[0] == "remove"):
+					self.dataframe = self.dataframe[~((self.dataframe['Temp'] < (lower_limit_temp)) | (self.dataframe['Temp'] > (upper_limit_temp)))]
+					self.dataframe = self.dataframe[~((self.dataframe['Hum'] < (lower_limit_hum)) | (self.dataframe['Hum'] > (upper_limit_hum)))]
+				
+				# Capping outliers (Replacing with Median)
+				if (self.outlier[0] == "median"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, self.dataframe['Temp'].median(),
+											np.where(self.dataframe['Temp'] < lower_limit_temp, self.dataframe['Temp'].median(), self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, self.dataframe['Hum'].median(),
+											np.where(self.dataframe['Hum'] < lower_limit_hum, self.dataframe['Hum'].median(), self.dataframe['Hum']))
+				
+				# Capping outliers (Replacing with Mean)
+				if (self.outlier[0] == "mean"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, self.dataframe['Temp'].mean(),
+											np.where(self.dataframe['Temp'] < lower_limit_temp, self.dataframe['Temp'].mean(), self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, self.dataframe['Hum'].mean(),
+											np.where(self.dataframe['Hum'] < lower_limit_hum, self.dataframe['Hum'].mean(), self.dataframe['Hum']))
+
+				# Capping outliers (Replacing with Mode)
+				if (self.outlier[0] == "mode"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, self.dataframe['Temp'].mode(),
+											np.where(self.dataframe['Temp'] < lower_limit_temp, self.dataframe['Temp'].mode(), self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, self.dataframe['Hum'].mode(),
+											np.where(self.dataframe['Hum'] < lower_limit_hum, self.dataframe['Hum'].mode(), self.dataframe['Hum']))
+
+				# Capping outliers (Replacing with upper/lower limits)
+				if (self.outlier[0] == "limit"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, upper_limit_temp,
+											np.where(self.dataframe['Temp'] < lower_limit_temp, lower_limit_temp, self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, upper_limit_hum,
+											np.where(self.dataframe['Hum'] < lower_limit_hum, lower_limit_hum, self.dataframe['Hum']))
 
 			# else --> Identify outliers with Standard Deviation
 			if (bool(self.std[0])):
@@ -404,13 +437,44 @@ class FileHandler(object):
 					z = (hum - mean_hum)/sd_hum 
 					if z > threshold:
 						outlier_hum.append(hum)
-				# Remove outliers
-				self.dataframe = self.dataframe[(self.dataframe['Temp'] < mean_temp+(n_std*sd_temp))]
-				self.dataframe = self.dataframe[(self.dataframe['Temp'] > mean_temp-(n_std*sd_temp))]
-				self.dataframe = self.dataframe[(self.dataframe['Hum'] < mean_hum+(n_std*sd_hum))]
-				self.dataframe = self.dataframe[(self.dataframe['Hum'] > mean_hum-(n_std*sd_hum))]
+
+				# Handling with outliers
+				# Trimming outliers (removing)
+				if (self.outlier[0] == "remove"):
+					self.dataframe = self.dataframe[~((self.dataframe['Temp'] < (lower_limit_temp)) | (self.dataframe['Temp'] > (upper_limit_temp)))]
+					self.dataframe = self.dataframe[~((self.dataframe['Hum'] < (lower_limit_hum)) | (self.dataframe['Hum'] > (upper_limit_hum)))]
+				
+				# Capping outliers (Replacing with Median)
+				if (self.outlier[0] == "median"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, self.dataframe['Temp'].median(),
+											np.where(self.dataframe['Temp'] < lower_limit_temp, self.dataframe['Temp'].median(), self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, self.dataframe['Hum'].median(),
+											np.where(self.dataframe['Hum'] < lower_limit_hum, self.dataframe['Hum'].median(), self.dataframe['Hum']))
+				
+				# Capping outliers (Replacing with Mean)
+				if (self.outlier[0] == "mean"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, self.dataframe['Temp'].mean(),
+											np.where(self.dataframe['Temp'] < lower_limit_temp, self.dataframe['Temp'].mean(), self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, self.dataframe['Hum'].mean(),
+											np.where(self.dataframe['Hum'] < lower_limit_hum, self.dataframe['Hum'].mean(), self.dataframe['Hum']))
+
+				# Capping outliers (Replacing with Mode)
+				if (self.outlier[0] == "mode"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, self.dataframe['Temp'].mode(),
+											np.where(self.dataframe['Temp'] < lower_limit_temp, self.dataframe['Temp'].mode(), self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, self.dataframe['Hum'].mode(),
+											np.where(self.dataframe['Hum'] < lower_limit_hum, self.dataframe['Hum'].mode(), self.dataframe['Hum']))
+
+				# Capping outliers (Replacing with upper/lower limits)
+				if (self.outlier[0] == "limit"):
+					self.dataframe['Temp'] = np.where(self.dataframe['Temp'] > upper_limit_temp, upper_limit_temp,
+											np.where(self.dataframe['Temp'] < lower_limit_temp, lower_limit_temp, self.dataframe['Temp']))
+					self.dataframe['Hum'] = np.where(self.dataframe['Hum'] > upper_limit_hum, upper_limit_hum,
+											np.where(self.dataframe['Hum'] < lower_limit_hum, lower_limit_hum, self.dataframe['Hum']))
+			
+
 			if (bool(self.no[0])):
-				console.print(f'[{messageColor}]Outlier removal is deactivated.')
+				console.print(f'[{messageColor}]Outlier removal/replacement is deactivated.')
 
 			if not (bool(self.no[0])):
 				# Show statistical data
@@ -507,9 +571,10 @@ if __name__ == '__main__':
 	parser.add_argument('-i','--input', action='store', required=True, dest='inputfile', metavar='<filename>', help='Specify the path to the input-file')
 	parser.add_argument('-o','--output', action='store', required=True, dest='outputfile', metavar='<filename>', help='Specify the path to the output-file')
 	parser.add_argument('-p','--plot', action='store_true', dest='plot', default=False, help='Show Plot (default: disabled)')
-	outlier.add_argument('-iq','--iqr', action='store_true', dest='iqr', default=False, help='Use IQR for outlier removal (default: disabled)')
-	outlier.add_argument('-st','--std', action='store_true', dest='std', default=False, help='Use Z-Score for outlier removal (default: disabled)')
+	outlier.add_argument('-iq','--iqr', action='store_true', dest='iqr', default=False, help='Use IQR for outlier identification (default: disabled)')
+	outlier.add_argument('-st','--std', action='store_true', dest='std', default=False, help='Use Z-Score for outlier identification (default: disabled)')
 	outlier.add_argument('-no','--noremoval', action='store_true', dest='no', default=False, help='No outlier removal (default: disabled)')
+	parser.add_argument('-u','--outlier', action='store', required=True, dest='outlier', metavar='<choice>', choices = ['remove', 'mean', 'median', 'limit', 'mode', 'ignore'], help='Choose outlier replacement method. Choices: [remove, mean, median, limit, mode, ignore]')
 	parser.add_argument('-z','--zscore', action='store', dest='s', default=3, metavar='<s>', required='--std' in sys.argv, type=float, help='Z-Score for outlier detection (default: 3)')
 	parser.add_argument('-l','--log', action='store_true', dest='log', default=False, help='Show detailed logs (default: disabled)')
 	

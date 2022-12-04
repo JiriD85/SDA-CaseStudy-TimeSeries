@@ -5,7 +5,7 @@
 
 ## 1. Usage of TimeSeriesHandler.py
 ```
-usage: TimeSeriesHandler.py [-h] -i <filename> -o <filename> [-p] (-iq | -st | -no) [-z <s>] [-l]
+usage: TimeSeriesHandler.py [-h] -i <filename> -o <filename> [-p] (-iq | -st | -no) -u <choice> [-z <s>] [-l]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -14,18 +14,20 @@ optional arguments:
   -o <filename>, --output <filename>
                         Specify the path to the output-file
   -p, --plot            Show Plot (default: disabled)
-  -iq, --iqr            Use IQR for outlier removal (default: disabled)
-  -st, --std            Use Z-Score for outlier removal (default: disabled)
+  -iq, --iqr            Use IQR for outlier identification (default: disabled)
+  -st, --std            Use Z-Score for outlier identification (default: disabled)
   -no, --noremoval      No outlier removal (default: disabled)
+  -u <choice>, --outlier <choice>
+                        Choose outlier replacement method. Choices: [remove, mean, median, limit, mode, ignore]
   -z <s>, --zscore <s>  Z-Score for outlier detection (default: 3)
   -l, --log             Show detailed logs (default: disabled)
 ```
 
 ## 2. Examples
 ### 2.1. Outlier removal with Interquartile range
-Example how to start TimeSeriesHandler.py with Input-file `--input <input.log>`, Output-file `--output output.log`, deactivated plot (plot.png will be saved in the same directory), activated Interquartile range `--iqr` for outlier removal:
+Example how to start TimeSeriesHandler.py with Input-file `--input <input.log>`, Output-file `--output output.log`, deactivated plot (plot.png will be saved in the same directory), activated Interquartile range `--iqr -u remove` for outlier removal:
 ```
-python.exe TimeSeriesHandler.py --input input.log --output output.log --iqr
+python.exe TimeSeriesHandler.py --input input.log --output output.log --iqr -u remove
 ```
 
 **Plot of the Example with Outlier removal using Interquartile range**:
@@ -45,27 +47,27 @@ Part of the content of `input.log`:
 Part of the content of `output.log`
 ```
 Temp,Hum,Datetime
-22.0,20.0,2022-09-14 19:32:47
-22.0,20.0,2022-09-14 19:37:54
-22.0,26.0,2022-09-14 19:43:01
-22.0,26.0,2022-09-14 19:48:08
+22.0,20.0,2022-09-14 19:33:15
+22.0,20.0,2022-09-14 19:38:15
+22.0,26.0,2022-09-14 19:43:15
+22.0,26.0,2022-09-14 19:48:15
 22.0,20.0,2022-09-14 19:53:15
 22.0,23.0,2022-09-14 19:58:15
 ```
 
 ### 2.2. Outlier removal using Standard deviation with Z-Score = 3
-Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, deactivated plot (plot.png will also be saved in the same directory), activated Standard deviation with 3 Standard deviations `-st -z 3` and detailed logs `-l`:
+Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, deactivated plot (plot.png will also be saved in the same directory), activated Standard deviation with 3 Standard deviations `-st -z 3`, outlier replacement method `-u limit` and detailed logs `-l`:
 ```
-python.exe TimeSeriesHandler.py -i input.log -o output.log -st -z 3 -l
+python.exe TimeSeriesHandler.py -i input.log -o output.log -st -z 3 -l -u limit
 ```
 
 **Plot of the Example with Outlier removal using Standard deviation**:
 ![Plot Example 2](plot2.png)
 
-### 2.3. No Outlier removal
+### 2.3. No Outlier removal/replacement
 Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, activated plot `-p` (plot.png will also be saved in the same directory):
 ```
-python.exe TimeSeriesHandler.py -i input.log -o output.log -p
+python.exe TimeSeriesHandler.py -i input.log -o output.log -p -no -u ignore
 ```
 **Plot of the Example without outlier removal**:
 ![Plot Example 3](plot3.png)
@@ -83,7 +85,7 @@ python.exe TimeSeriesHandler.py -i input.log -o output.log -p
 9.  **format_data_columns():** Replacing Strings in Temp and Hum. Drops column TO. Converts values to float. Replaces empty string with np.nan. Creates NaN Index.
 10. **check_valid_value():** Checks if the values of Temp and Hum are in a valid range. Invalid values are replaced with NaN.
 11. **interpolate_nan():** Interpolates NaN values of Temp and Hum.
-12. **remove_outliers():** Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
+12. **remove_outliers():** Identifies and removes/replaces outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range. Choices for replacement are: [remove, mean, median, limit, mode, ignore]
 13. **drop_duplicates():** Drops identical duplicates of data in dataframe.
 14. **plot_data():** Creates Boxplots and Lineplots for Time series Temp and Hum. For a better data comparison two dataframes are compared to each other (before and after outlier removal).
 15. **export_file():** Exports Dateframe to File in the specified path.
