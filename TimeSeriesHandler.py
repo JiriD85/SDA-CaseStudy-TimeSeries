@@ -1,6 +1,40 @@
 ##############################################################################
 # 						SENSOR DATA PREPROCESSING							 #
 ##############################################################################
+"""
+Name:		TimeSeriesHandler.py
+Version:	1.0
+Author:		Jiri Dockal
+Date:		04.12.2022
+
+This script is modifiying the content of a time-series input-file (e.g. input.log). 
+The input-file MUST have this certain structure:
+- Column 1 = Date
+- Column 2 = Time
+- Column 3 = Temperature value beginning with string "T="
+- Column 4 = Humidity value beginning with string "H="
+- Column 5 = TO value beginning with string "TO="
+
+Procedure:
+- Creating a Dataframe from input-file
+- Renaming columns of Dataframe
+- Creating Datetime columns from Date and Time
+- Dropping Date and Time columns
+- Checking if the Datetime values are valid, if not the values are changed to NaT
+- Replacing NaT values in column Datetime
+- Formating Data value columns (Replacing Strings in Temp and Hum. Dropping column TO. Converting values to float. Replacing empty string with np.nan. Creating NaN Index.)
+- Checking if Temp and Hum values are in a valid range (Invalid values are replaced with NaN)
+- Interpolating NaN values of Temp and Hum columns.
+- Identifiyng and removing outliers (Standard deviation or Interquatrile Range)
+- Creating Boxplots and Lineplots for Temp and Hum.
+- Exporting Dataframe to output-file
+
+11. **interpolate_nan():** Interpolates NaN values of Temp and Hum.
+12. **remove_outliers():** Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
+13. **plot_data():** Creates Boxplots and Lineplots for Time series Temp and Hum. For a better data comparison two dataframes are compared to each other (before and after outlier removal).
+14. **export_file():** Exports Dateframe to File in the specified path.
+
+"""
 
 ####### Import ########
 import pandas as pd
@@ -21,6 +55,9 @@ from rich.console import Console
 class FileHandler(object):
 
 	def __init__(self, args:argparse.Namespace) -> None:
+		"""
+		Constructor for the FileHandler class.
+		"""
 		# Assume a couple of meaningful defaults here
 		self.inputfile = args.inputfile,
 		self.outputfile = args.outputfile,
@@ -42,7 +79,7 @@ class FileHandler(object):
 		"""
 		try:
 			data_url = args.inputfile
-			self.dataframe = pd.read_csv(data_url, sep=" ", header=None, index_col=None)
+			self.dataframe = pd.read_csv(data_url, sep=" ", header=None, index_col=None, on_bad_lines='skip', usecols=[0,1,2,3,4], skip_blank_lines=True)
 			console.print(f'[{messageColor}]Input-file processed: {args.inputfile}')
 			if bool(self.log[0]):
 				self.dataframe.info()
@@ -303,77 +340,89 @@ class FileHandler(object):
 		Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
 		"""
 		try:
-			# if std = True --> Identify outliers with Standard deviation
-			if bool(self.std[0]):
-				# Standard deviation
-				n_std = float(self.s[0])
-				# Variables
-				mean_temp = self.dataframe['Temp'].mean()
-				sd_temp = self.dataframe['Temp'].std()
-				lower_limit_temp = mean_temp - (n_std*sd_temp)
-				upper_limit_temp = mean_temp + (n_std*sd_temp)
-				if bool(self.log[0]):
-					print(f'Mean Temperature: {mean_temp}')
-					print(f'Standard deviation of Temperature: {sd_temp}')
-					print(f'Upper Limit Temperature: {upper_limit_temp}')
-					print(f'Lower Limit Temperature: {lower_limit_temp}')
-				mean_hum = self.dataframe['Hum'].mean()
-				sd_hum = self.dataframe['Hum'].std()
-				lower_limit_hum = mean_hum - (n_std*sd_hum)
-				upper_limit_hum = mean_hum + (n_std*sd_hum)
-				if bool(self.log[0]):
-					print(f'Mean Humidity: {mean_hum}')
-					print(f'Standard deviation of Humidity: {sd_hum}')
-					print(f'Upper Limit Humidity: {upper_limit_hum}')
-					print(f'Lower Limit Humidity: {lower_limit_hum}')
-				# Find and remove outliers
-				# Temperature
-				threshold = n_std
-				outlier_temp = []
-				for temp in self.dataframe['Temp']:
-					z = (temp - mean_temp)/sd_temp 
-					if z > threshold:
-						outlier_temp.append(temp)
-				self.dataframe = self.dataframe[(self.dataframe['Temp'] <= upper_limit_temp)]
-				self.dataframe = self.dataframe[(self.dataframe['Temp'] <= lower_limit_temp)]
-				# Humidity 
-				threshold = n_std
-				outlier_hum = []
-				for hum in self.dataframe['Hum']:
-					z = (hum - mean_hum)/sd_hum 
-					if z > threshold:
-						outlier_hum.append(hum)
-				self.dataframe = self.dataframe[(self.dataframe['Hum'] <= upper_limit_hum)]
-				self.dataframe = self.dataframe[(self.dataframe['Hum'] <= lower_limit_hum)]
-
-			# else --> Identify outliers with Interquartile Range
-			else:
+			outlier_temp = []
+			outlier_hum = []
+			mean_temp = self.dataframe['Temp'].mean()
+			sd_temp = self.dataframe['Temp'].std()
+			mean_hum = self.dataframe['Hum'].mean()
+			sd_hum = self.dataframe['Hum'].std()
+			# if arg iqr = True --> Identify outliers with Interquartile Range
+			if bool(self.iqr[0]):
 				# iqr
+				if bool(self.log[0]):
+					print(f'Removing outliers with IQR...')
 				q1_temp = self.dataframe['Temp'].quantile(0.25)
 				q3_temp = self.dataframe['Temp'].quantile(0.75)
 				iqr_temp = q3_temp - q1_temp
 				lower_limit_temp = q1_temp - 1.5 * iqr_temp
-				higher_limit_temp = q3_temp + 1.5 * iqr_temp
+				upper_limit_temp = q3_temp + 1.5 * iqr_temp
 				q1_hum = self.dataframe['Hum'].quantile(0.25)
 				q3_hum = self.dataframe['Hum'].quantile(0.75)
 				iqr_hum = q3_hum - q1_hum
 				lower_limit_hum = q1_hum - 1.5 * iqr_hum
-				higher_limit_hum = q3_hum + 1.5 * iqr_hum
-				# Find and remove outliers
-				outlier_hum = []
+				upper_limit_hum = q3_hum + 1.5 * iqr_hum
+				# Find outliers
 				for hum in self.dataframe['Hum']:
-					if (hum > higher_limit_hum) or (hum < lower_limit_hum) :
+					if (hum > upper_limit_hum) or (hum < lower_limit_hum) :
 						outlier_hum.append(hum)
-				outlier_temp = []
 				for temp in self.dataframe['Temp']:
-					if (temp > higher_limit_temp) or (temp < lower_limit_temp) :
+					if (temp > upper_limit_temp) or (temp < lower_limit_temp) :
 						outlier_temp.append(temp)
-				self.dataframe = self.dataframe[~((self.dataframe['Temp'] < (lower_limit_temp)) | (self.dataframe['Temp'] > (higher_limit_temp)))]
-				self.dataframe = self.dataframe[~((self.dataframe['Hum'] < (lower_limit_hum)) | (self.dataframe['Hum'] > (higher_limit_hum)))]
+				# Remove outliers
+				self.dataframe = self.dataframe[~((self.dataframe['Temp'] < (q1_temp - 1.5 * iqr_temp)) | (self.dataframe['Temp'] > (q3_temp + 1.5 * iqr_temp)))]
+				self.dataframe = self.dataframe[~((self.dataframe['Hum'] < (q1_hum - 1.5 * iqr_hum)) | (self.dataframe['Hum'] > (q3_hum + 1.5 * iqr_hum)))]
+
+			# else --> Identify outliers with Standard Deviation
+			if (bool(self.std[0])):
+				if bool(self.log[0]):
+					print(f'Removing outliers with SD...')
+				# standard deviation
+				n_std = float(self.s[0])
+				threshold = n_std
+				# Temperature
+				sd_hum = self.dataframe['Hum'].std()
+				lower_limit_temp = mean_temp - (n_std*sd_temp)
+				upper_limit_temp = mean_temp + (n_std*sd_temp)
+				lower_limit_hum = mean_hum - (n_std*sd_hum)
+				upper_limit_hum = mean_hum + (n_std*sd_hum)
+				# Find outliers
+				for temp in self.dataframe['Temp']:
+					z = (temp - mean_temp)/sd_temp 
+					if z > threshold:
+						outlier_temp.append(temp)
+				for hum in self.dataframe['Hum']:
+					z = (hum - mean_hum)/sd_hum 
+					if z > threshold:
+						outlier_hum.append(hum)
+				# Remove outliers
+				self.dataframe = self.dataframe[(self.dataframe['Temp'] <= mean_temp+(n_std*sd_temp))]
+				self.dataframe = self.dataframe[(self.dataframe['Hum'] <= mean_hum+(n_std*sd_hum))]
+
+			# Show statistical data
+			if bool(self.log[0]):
+				print(f'Mean Temperature: {mean_temp}')
+				print(f'Standard deviation of Temperature: {sd_temp}')
+				print(f'Upper Limit Temperature: {upper_limit_temp}')
+				print(f'Lower Limit Temperature: {lower_limit_temp}')
+				print(f'Mean Humidity: {mean_hum}')
+				print(f'Standard deviation of Humidity: {sd_hum}')
+				print(f'Upper Limit Humidity: {upper_limit_hum}')
+				print(f'Lower Limit Humidity: {lower_limit_hum}')
+
 			# Show Outliers	
 			console.print(f'[{messageColor}]Temperature Outliers in dataset: {outlier_temp}')
 			console.print(f'[{messageColor}]Humidity Outliers in dataset: {outlier_hum}')
 			console.print(f'[{messageColor}]{len(outlier_temp) + len(outlier_hum)} Outliers removed.')
+		except Exception as e:
+			console.print(f'[{errorColor}]REPLACE_OUTLIERS EXCEPTION - Something strange is going on: {type(e)}')
+
+	def drop_duplicates(self) -> None:
+		"""
+		Drops duplicates. Running this will keep one instance of the duplicated row, and remove all those after.
+		"""
+		try:
+			self.dataframe = self.dataframe.drop_duplicates()
+			console.print(f'[{messageColor}]Dropping duplicates.')
 		except Exception as e:
 			console.print(f'[{errorColor}]REPLACE_OUTLIERS EXCEPTION - Something strange is going on: {type(e)}')
 
@@ -430,13 +479,14 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 
 	# arguments
-	parser.add_argument('--input', action='store', dest='inputfile', metavar='<filename>', help='Specify the path to the input-file')
-	parser.add_argument('--output', action='store', dest='outputfile', metavar='<filename>', help='Specify the path to the output-file')
-	parser.add_argument('--plot', action='store_true', dest='plot', default=False, help='Show Plot (default: disabled)')
-	parser.add_argument('--iqr', action='store_true', dest='iqr', default=True, help='Use IQR for outlier removal (default: enabled)')
-	parser.add_argument('--std', action='store_true', dest='std', default=False, help='Use Z-Score for outlier removal (default: disabled)')
-	parser.add_argument('--s', action='store', dest='s', default=3, metavar='<s>', type=float, help='Z-Score for outlier detection (default: 3)')
-	parser.add_argument('--log', action='store_true', dest='log', default=False, help='Show detailed logs (default: disabled)')
+	outlier = parser.add_mutually_exclusive_group(required=True)
+	parser.add_argument('-i','--input', action='store', required=True, dest='inputfile', metavar='<filename>', help='Specify the path to the input-file')
+	parser.add_argument('-o','--output', action='store', required=True, dest='outputfile', metavar='<filename>', help='Specify the path to the output-file')
+	parser.add_argument('-p','--plot', action='store_true', dest='plot', default=False, help='Show Plot (default: disabled)')
+	outlier.add_argument('-iq','--iqr', action='store_true', dest='iqr', default=False, help='Use IQR for outlier removal (default: disabled)')
+	outlier.add_argument('-st','--std', action='store_true', dest='std', default=False, help='Use Z-Score for outlier removal (default: disabled)')
+	parser.add_argument('-z','--zscore', action='store', dest='s', default=3, metavar='<s>', required='--std' in sys.argv, type=float, help='Z-Score for outlier detection (default: 3)')
+	parser.add_argument('-l','--log', action='store_true', dest='log', default=False, help='Show detailed logs (default: disabled)')
 	
 	args = parser.parse_args()
 
@@ -447,7 +497,7 @@ try:
 	file = FileHandler(args)
 	file.open_file()
 	file.rename_columns()
-	#check if values are valid. if not --> drop invalid lines at the end and the beginning
+	file.drop_duplicates() # Firstly to remove all duplicates that have been imported via input-file
 	file.create_datetime()
 	file.get_first_valid_timestamp()
 	file.get_last_valid_timestamp()
@@ -458,6 +508,7 @@ try:
 	file.check_valid_value()
 	file.interpolate_nan()
 	file.remove_outliers()
+	file.drop_duplicates() # Secondly to remove all duplicates that may heve been created due to replace_nat or interpolate_nan
 	file.plot_data()
 	file.export_file()
 

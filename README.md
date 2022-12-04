@@ -2,28 +2,30 @@
 
 ## Usage of TimeSeriesHandler.py
 ```
-usage: TimeSeriesHandler.py [-h] [--input <filename>] [--output <filename>] [--plot] [--iqr] [--std] [--s <s>] [--log]
+usage: TimeSeriesHandler.py [-h] -i <filename> -o <filename> [-p] (-iq | -st) [-z <s>] [-l]
 
 optional arguments:
-  -h, --help           show this help message and exit
-  --input <filename>   Specify the path to the input-file
-  --output <filename>  Specify the path to the output-file
-  --plot               Show Plot (default: disabled)
-  --iqr                Use IQR for outlier removal (default: enabled)
-  --std                Use Z-Score for outlier removal (default: disabled)
-  --s <s>              Z-Score for outlier detection (default: 3)
-  --log                Show detailed logs (default: disabled)
+  -h, --help            show this help message and exit
+  -i <filename>, --input <filename>
+                        Specify the path to the input-file
+  -o <filename>, --output <filename>
+                        Specify the path to the output-file
+  -p, --plot            Show Plot (default: disabled)
+  -iq, --iqr            Use IQR for outlier removal (default: disabled)
+  -st, --std            Use Z-Score for outlier removal (default: disabled)
+  -z <s>, --zscore <s>  Z-Score for outlier detection (default: 3)
+  -l, --log             Show detailed logs (default: disabled)
 ```
 
 ## Examples
-1. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, deactivated plot (plot.png will be saved in the same directory), Interquartile range `--iqr` for outlier removal is activated in default:
+1. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, deactivated plot (plot.png will be saved in the same directory), activated Interquartile range `--iqr` for outlier removal:
 ```
-python.exe TimeSeriesHandler.py --input input.log --output output.log
+python.exe TimeSeriesHandler.py --input input.log --output output.log --iqr
 ```
 
-2. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, activated plot (plot.png will also be saved in the same directory), activated Standard deviation with 2 Standard deviations `--std 2` and detailed logs `--log`:
+1. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, activated plot (plot.png will also be saved in the same directory), activated Standard deviation with 2 Standard deviations `--std 2` and detailed logs `--log`:
 ```
-python.exe TimeSeriesHandler.py --input input.log --output output.log --plot --std --s 2 --log
+python.exe TimeSeriesHandler.py -i input.log -o output.log -st -z 3 -l
 ```
 
 ## Overview Methods
@@ -39,8 +41,9 @@ python.exe TimeSeriesHandler.py --input input.log --output output.log --plot --s
 10. **check_valid_value():** Checks if the values of Temp and Hum are in a valid range. Invalid values are replaced with NaN.
 11. **interpolate_nan():** Interpolates NaN values of Temp and Hum.
 12. **remove_outliers():** Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
-13. **plot_data():** Creates Boxplots and Lineplots for Time series Temp and Hum. For a better data comparison two dataframes are compared to each other (before and after outlier removal).
-14. **export_file():** Exports Dateframe to File in the specified path.
+13. **drop_duplicates():** Drops identical duplicates of data in dataframe.
+14. **plot_data():** Creates Boxplots and Lineplots for Time series Temp and Hum. For a better data comparison two dataframes are compared to each other (before and after outlier removal).
+15. **export_file():** Exports Dateframe to File in the specified path.
 
 ## Statistical Background: IQR, SD and Z-Score
 
