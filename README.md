@@ -34,11 +34,11 @@ python.exe TimeSeriesHandler.py --input input.log --output output.log --plot --s
 5.  **get_last_valid_timestamp():** Gets the last valid timestamp of the Dataframe.
 6.  **calculate_mean_timegap():** Calculates the mean timegap between timestamps.
 7.  **check_valid_date():** Checks if dates are valid. Changes invalid dates to NaT.
-8.  **replace_nat():** Replaces all NaT / invalid timestamps. Uses the mean timegap for calculations.
+8.  **replace_nat():** Checks the dataframe for NaT. Replaces all NaT / invalid timestamps. Uses the mean timegap for calculations.
 9.  **format_data_columns():** Replacing Strings in Temp and Hum. Drops column TO. Converts values to float. Replaces empty string with np.nan. Creates NaN Index.
 10. **check_valid_value():** Checks if the values of Temp and Hum are in a valid range. Invalid values are replaced with NaN.
 11. **interpolate_nan():** Interpolates NaN values of Temp and Hum.
-12. **remove_outliers():** Identifies ans removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
+12. **remove_outliers():** Identifies and removes outliers. Works for Standard deviation (Z-Score) and for Interquatrile Range.
 13. **plot_data():** Creates Boxplots and Lineplots for Time series Temp and Hum. For a better data comparison two dataframes are compared to each other (before and after outlier removal).
 14. **export_file():** Exports Dateframe to File in the specified path.
 
