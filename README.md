@@ -17,10 +17,14 @@ optional arguments:
 
 ## Examples
 1. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, deactivated plot (plot.png will be saved in the same directory), Interquartile range `--iqr` for outlier removal is activated in default:
-```python.exe TimeSeriesHandler.py --input input.log --output output.log```
+```
+python.exe TimeSeriesHandler.py --input input.log --output output.log
+```
 
 2. Example how to start TimeSeriesHandler.py with Input-file `input.log`, Output-file `output.log`, activated plot (plot.png will also be saved in the same directory), activated Standard deviation with 2 Standard deviations `--std 2` and detailed logs `--log`:
-```python.exe TimeSeriesHandler.py --input input.log --output output.log --plot --std --s 2 --log```
+```
+python.exe TimeSeriesHandler.py --input input.log --output output.log --plot --std --s 2 --log
+```
 
 ## Overview Methods
 1. 	**open_file():** Creates Dataframe from the csv- or log-file in the specified path.
