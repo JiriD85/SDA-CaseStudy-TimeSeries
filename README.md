@@ -55,7 +55,7 @@ Temp,Hum,Datetime
 22.0,23.0,2022-09-14 19:58:15
 ```
 
-### 2.2. Outlier removal using Standard deviation with Z-Score = 3
+### 2.2. Outlier replacement using Standard deviation with Z-Score = 3
 Example how to start TimeSeriesHandler.py with Input-file `-i input.log`, Output-file `-o output.log`, deactivated plot (plot.png will also be saved in the same directory), activated Standard deviation with 3 Standard deviations `-st -z 3`, outlier replacement method `-u limit` and detailed logs `-l`:
 ```
 python.exe TimeSeriesHandler.py -i input.log -o output.log -st -z 3 -l -u limit
